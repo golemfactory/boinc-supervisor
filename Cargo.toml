@@ -1,0 +1,11 @@
+[package]
+name = "boinc-supervisor"
+version = "0.1.0"
+authors = ["Golem Factory <contact@golem.network>"]
+edition = "2018"
+license = "GPL-3.0"
+
+[dependencies]
+arrayref = "0.3.6"
+ctrlc = "3.1.4"
+memmap = "0.7.0"
