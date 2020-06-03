@@ -3,7 +3,10 @@ name = "boinc-supervisor"
 version = "0.1.0"
 authors = ["Golem Factory <contact@golem.network>"]
 edition = "2018"
-license = "GPL-3.0"
+description = "This application implements enough of BOINC IPC to support running simple apps without real BOINC client"
+readme = "README.md"
+repository = "github.com/golemfactory/boinc-supervisor/"
+license = "GPL-3.0-or-later"
 
 [dependencies]
 arrayref = "0.3.6"
