@@ -59,15 +59,27 @@ impl MsgChannel<'_> {
         self.buf[0] = 0;
         result
     }
+
+    pub fn send_msg_overwrite(&mut self, msg: &str) -> Result<(), &'static str> {
+        if msg.len() > MSG_CHANNEL_SIZE - 1 {
+            return Err("message too long");
+        }
+        self.buf[0] = 1;
+        self.buf[1..msg.len() + 1].copy_from_slice(msg.as_bytes());
+        self.buf[msg.len() + 1] = 0;
+        Ok(())
+    }
 }
 
 #[cfg(test)]
 mod tests {
+    use arrayref::array_ref;
+
     use super::*;
 
     #[test]
     fn no_message() {
-        let mut buf: ChannelBuf = [b'\0'; MSG_CHANNEL_SIZE];
+        let mut buf: ChannelBuf = [0; MSG_CHANNEL_SIZE];
         let mut channel = MsgChannel::from(&mut buf);
         assert!(!channel.has_msg());
         assert_eq!(channel.get_msg(), None);
@@ -75,7 +87,7 @@ mod tests {
 
     #[test]
     fn no_nulls() {
-        let mut buf: ChannelBuf = [b'\x01'; MSG_CHANNEL_SIZE];
+        let mut buf: ChannelBuf = [1; MSG_CHANNEL_SIZE];
         let mut channel = MsgChannel::from(&mut buf);
         assert!(channel.has_msg());
         let msg = channel.get_msg();
@@ -85,8 +97,8 @@ mod tests {
 
     #[test]
     fn has_message() {
-        let mut buf: ChannelBuf = [b'\0'; MSG_CHANNEL_SIZE];
-        buf[0] = b'\x01';
+        let mut buf: ChannelBuf = [0; MSG_CHANNEL_SIZE];
+        buf[0] = 1;
         buf[1] = b'a';
         buf[2] = b'b';
         buf[3] = b'c';
@@ -100,5 +112,14 @@ mod tests {
             assert_eq!(msg.unwrap(), "abc");
         }
         assert!(!channel.has_msg());
+    }
+
+    #[test]
+    fn send_msg_overwrite() {
+        let mut buf: ChannelBuf = [1; MSG_CHANNEL_SIZE];
+        let mut channel = MsgChannel::from(&mut buf);
+        channel.send_msg_overwrite("abc").unwrap();
+        // assert_eq!(buf[..5], b"\x01abc\0");
+        assert_eq!(array_ref![buf, 0, 6], b"\x01abc\0\x01");
     }
 }

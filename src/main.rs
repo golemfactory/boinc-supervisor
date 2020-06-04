@@ -17,6 +17,7 @@ You should have received a copy of the GNU General Public License
 along with boinc-supervisor.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+use arrayref::array_mut_ref;
 use memmap::MmapMut;
 use std::{
     fs::OpenOptions,
@@ -28,9 +29,7 @@ use std::{
     },
     thread, time,
 };
-
-#[macro_use]
-extern crate arrayref;
+use strum_macros::Display;
 
 pub mod msg_channel;
 use crate::msg_channel::{MsgChannel, MSG_CHANNEL_SIZE};
@@ -38,9 +37,10 @@ use crate::msg_channel::{MsgChannel, MSG_CHANNEL_SIZE};
 const TIMER_PERIOD: time::Duration = time::Duration::from_millis(100); // 0.1s
 const MMAPPED_FILE_NAME: &'static str = "boinc_mmap_file";
 
+#[derive(Copy, Clone, Display)]
 enum ChannelId {
-    // ProcessControlRequest = 0,
-    // ProcessControlReply = 1,
+    ProcessControlRequest = 0,
+    ProcessControlReply = 1,
     // GraphicsRequest = 2,
     // GraphicsReply = 3,
     Heartbeat = 4,
@@ -75,6 +75,15 @@ impl SharedMem {
     }
 }
 
+fn get_and_print(shared_mem: &mut SharedMem, channel_id: ChannelId) {
+    if let Some(msg) = shared_mem.get_channel(channel_id).get_msg() {
+        match msg {
+            Ok(msg) => println!("got {}: {}", channel_id, msg),
+            Err(e) => println!("{} error: {}", channel_id, e),
+        }
+    }
+}
+
 fn main() {
     let run = Arc::new(AtomicBool::new(true));
     ctrlc::set_handler({
@@ -87,19 +96,15 @@ fn main() {
 
     let mut shared_mem = SharedMem::new(Path::new(MMAPPED_FILE_NAME)).expect("Failed mapping file");
 
+    shared_mem
+        .get_channel(ChannelId::ProcessControlRequest)
+        .send_msg_overwrite("<resume/>")
+        .expect("failed to write resume msg");
+
     while run.load(Ordering::SeqCst) {
-        if let Some(msg) = shared_mem.get_channel(ChannelId::Heartbeat).get_msg() {
-            match msg {
-                Ok(msg) => println!("got heartbeat: {}", msg),
-                Err(e) => println!("heatbeat error: {}", e),
-            }
-        }
-        if let Some(msg) = shared_mem.get_channel(ChannelId::AppStatus).get_msg() {
-            match msg {
-                Ok(msg) => println!("got app status: {}", msg),
-                Err(e) => println!("app status error: {}", e),
-            }
-        }
+        get_and_print(&mut shared_mem, ChannelId::ProcessControlReply);
+        get_and_print(&mut shared_mem, ChannelId::Heartbeat);
+        get_and_print(&mut shared_mem, ChannelId::AppStatus);
         thread::sleep(TIMER_PERIOD);
     }
 }
