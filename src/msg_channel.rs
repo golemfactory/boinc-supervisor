@@ -44,11 +44,11 @@ impl MsgChannel<'_> {
         }
         let buf = &self.buf[1..];
         let len: usize = match &buf.iter().position(|&x| x == b'\0') {
-            Some(len) => len + 1, // include the null byte
+            Some(len) => *len,
             None => return Some(Err(anyhow!("message is not null-terminated"))),
         };
         let result = Some(|| -> Result<String> {
-            Ok(std::str::from_utf8(&buf[..len - 1])?.to_string())
+            Ok(std::str::from_utf8(&buf[..len])?.to_string())
         }());
         self.buf[0] = 0;
         result
