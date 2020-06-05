@@ -35,7 +35,7 @@ pub mod msg_channel;
 use crate::msg_channel::{MsgChannel, MSG_CHANNEL_SIZE};
 
 const TIMER_PERIOD: time::Duration = time::Duration::from_millis(100); // 0.1s
-const MMAPPED_FILE_NAME: &'static str = "boinc_mmap_file";
+const MMAPPED_FILE_NAME: &str = "boinc_mmap_file";
 
 #[derive(Copy, Clone, Display)]
 enum ChannelId {
