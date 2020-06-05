@@ -43,7 +43,7 @@ enum ChannelId {
     ProcessControlReply = 1,
     // GraphicsRequest = 2,
     // GraphicsReply = 3,
-    Heartbeat = 4,
+    // Heartbeat = 4, // if there's client_pid in init_data.xml, then there's no need to send heartbeats
     AppStatus = 5,
     // TrickleUp = 6,
     // TrickleDown = 7,
@@ -103,7 +103,6 @@ fn main() {
 
     while run.load(Ordering::SeqCst) {
         get_and_print(&mut shared_mem, ChannelId::ProcessControlReply);
-        get_and_print(&mut shared_mem, ChannelId::Heartbeat);
         get_and_print(&mut shared_mem, ChannelId::AppStatus);
         thread::sleep(TIMER_PERIOD);
     }
