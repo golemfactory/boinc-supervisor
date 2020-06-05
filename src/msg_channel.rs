@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with boinc-supervisor.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-use std::ffi::{CStr, CString};
+use anyhow::{anyhow, Result};
 
 pub const MSG_CHANNEL_SIZE: usize = 1024;
 
@@ -38,31 +38,25 @@ impl MsgChannel<'_> {
         self.buf[0] != 0
     }
 
-    pub fn get_msg(&mut self) -> Option<Result<String, String>> {
+    pub fn get_msg(&mut self) -> Option<Result<String>> {
         if !self.has_msg() {
             return None;
         }
         let buf = &self.buf[1..];
         let len: usize = match &buf.iter().position(|&x| x == b'\0') {
             Some(len) => len + 1, // include the null byte
-            None => return Some(Err("message is not null-terminated".to_string())),
+            None => return Some(Err(anyhow!("message is not null-terminated"))),
         };
-        let result = Some(
-            CStr::from_bytes_with_nul(&buf[..len])
-                .map_err(|err| err.to_string())
-                .and_then(|cstr| {
-                    CString::from(cstr)
-                        .into_string()
-                        .map_err(|err| err.to_string())
-                }),
-        );
+        let result = Some(|| -> Result<String> {
+            Ok(std::str::from_utf8(&buf[..len - 1])?.to_string())
+        }());
         self.buf[0] = 0;
         result
     }
 
-    pub fn send_msg_overwrite(&mut self, msg: &str) -> Result<(), &'static str> {
+    pub fn send_msg_overwrite(&mut self, msg: &str) -> Result<()> {
         if msg.len() > MSG_CHANNEL_SIZE - 1 {
-            return Err("message too long");
+            return Err(anyhow!("message too long"));
         }
         self.buf[0] = 1;
         self.buf[1..msg.len() + 1].copy_from_slice(msg.as_bytes());
@@ -82,7 +76,7 @@ mod tests {
         let mut buf: ChannelBuf = [0; MSG_CHANNEL_SIZE];
         let mut channel = MsgChannel::from(&mut buf);
         assert!(!channel.has_msg());
-        assert_eq!(channel.get_msg(), None);
+        assert!(channel.get_msg().is_none());
     }
 
     #[test]

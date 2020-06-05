@@ -9,6 +9,7 @@ repository = "github.com/golemfactory/boinc-supervisor/"
 license = "GPL-3.0-or-later"
 
 [dependencies]
+anyhow = "1.0"
 arrayref = "0.3.6"
 ctrlc = "3.1.4"
 memmap = "0.7.0"
