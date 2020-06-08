@@ -43,7 +43,7 @@ enum ChannelId {
     ProcessControlReply = 1,
     // GraphicsRequest = 2,
     // GraphicsReply = 3,
-    // Heartbeat = 4, // if there's client_pid in init_data.xml, then there's no need to send heartbeats
+    Heartbeat = 4, // if there's client_pid in init_data.xml, then there's no need to send heartbeats
     AppStatus = 5,
     TrickleUp = 6,
     // TrickleDown = 7,
@@ -99,9 +99,14 @@ fn main() {
     shared_mem
         .get_channel(ChannelId::ProcessControlRequest)
         .send_msg_overwrite("<resume/>")
-        .expect("failed to write resume msg");
+        .unwrap();
 
     while run.load(Ordering::SeqCst) {
+        shared_mem
+            .get_channel(ChannelId::Heartbeat)
+            .send_msg_overwrite("<heartbeat/><suspend_network/>")
+            .unwrap();
+
         get_and_print(&mut shared_mem, ChannelId::ProcessControlReply);
         get_and_print(&mut shared_mem, ChannelId::AppStatus);
         get_and_print(&mut shared_mem, ChannelId::TrickleUp);
