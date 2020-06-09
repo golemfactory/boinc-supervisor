@@ -52,11 +52,6 @@ For reference see in BOINC sources:
     - `./boinc-supervisor &`
     - `./run.sh`
 
+## More info
 
-## Notes on `init_data.xml`
-
-Content of this file matches `struct APP_INIT_DATA` from `lib/app_ipc.h`. BOINC
-client puts all data it has into this file just in case an application could
-need any of those. Fields like `user_name`, `authenticator` and `proxy_info` may
-be used by apps, that are connecting with servers directly. If they are not
-using network, it should be safe to remove them.
+Have a look at [wiki](https://github.com/golemfactory/boinc-supervisor/wiki).
