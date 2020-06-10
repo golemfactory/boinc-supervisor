@@ -38,7 +38,7 @@ For reference see in BOINC sources:
       ```
 
 
-## Running
+## Running in docker with raw alpine image
 
 - [Build this as a static binary.](https://doc.rust-lang.org/edition-guide/rust-2018/platform-and-target-support/musl-support-for-fully-static-binaries.html)
 - `cp target/x86_64-unknown-linux-musl/release/boinc-supervisor $dest/slots/$slot/`
@@ -51,6 +51,26 @@ For reference see in BOINC sources:
     - `cd $boinc/slots/$slot`
     - `./boinc-supervisor &`
     - `./run.sh`
+
+
+## Running in docker with boinc-supervisor image
+
+- Download docker image
+  ```sh
+  docker pull docker.pkg.github.com/golemfactory/boinc-supervisor/boinc-supervisor:latest
+  ```
+  or build your own
+  ```sh
+  cd docker
+  ./build.sh
+  ```
+- Run
+  ```sh
+  docker run -d -v "${dest}:${boinc}" --rm -u "$(id -u):$(id -g)" boinc-supervisor "${boinc}/slots/${slot}/" ./run.sh
+  ```
+  This assumes that `run.sh` was created as described above. Instead you can
+  give any command with arguments to be run inside slot directory.
+
 
 ## More info
 
