@@ -68,8 +68,10 @@ For reference see in BOINC sources:
   ```sh
   docker run -d -v "${dest}:${boinc}" --rm -u "$(id -u):$(id -g)" boinc-supervisor "${boinc}/slots/${slot}/" ./run.sh
   ```
-  This assumes that `run.sh` was created as described above. Instead you can
-  give any command with arguments to be run inside slot directory.
+  The first parameter is a path to slot directory. Entrypoint script will launch
+  boinc-supervisor there. Next parameters will be used as a command and
+  arguments to be launched there. In this example it's `run.sh` without
+  arguments.
 
 
 ## More info
